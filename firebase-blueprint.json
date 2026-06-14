@@ -1,0 +1,47 @@
+{
+  "entities": {
+    "users": {
+      "title": "Users",
+      "description": "User profiles which store plan details, academic variables, and billing wallet balances.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string" },
+        "fullName": { "type": "string" },
+        "academicLevel": { "type": "string" },
+        "department": { "type": "string" },
+        "institution": { "type": "string" },
+        "plan": { "type": "string" },
+        "walletBalance": { "type": "number" }
+      },
+      "required": ["id", "email", "fullName"]
+    },
+    "projects": {
+      "title": "Projects",
+      "description": "Subject workspaces which save progress on chapters 1 to 5.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "academicLevel": { "type": "string" },
+        "department": { "type": "string" },
+        "style": { "type": "string" },
+        "currentChapter": { "type": "number" },
+        "lastUpdated": { "type": "string" },
+        "tableOfContents": { "type": "array" }
+      },
+      "required": ["id", "userId", "title"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "users",
+      "description": "Individually namespaced user data documents"
+    },
+    "/users/{userId}/projects/{projectId}": {
+      "schema": "projects",
+      "description": "Academic projects owned by a particular user"
+    }
+  }
+}

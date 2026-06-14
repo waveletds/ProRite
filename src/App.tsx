@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Sparkles, 
   BookOpen, 
@@ -43,9 +43,19 @@ import LibraryMarketplace from './components/LibraryMarketplace';
 import CollaborationPortal from './components/CollaborationPortal';
 import AdminInstitutionDashboards from './components/AdminInstitutionDashboards';
 
+// Auth and Landing components
+import HomepageLanding from './components/HomepageLanding';
+import AuthScreen from './components/AuthScreen';
+import { auth, db } from './firebase';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { doc, getDoc, setDoc, collection, getDocs } from 'firebase/firestore';
+
 type ActiveModuleId = 'assistant' | 'builder' | 'literature' | 'rewriter' | 'originality' | 'collaborate' | 'billing' | 'admin';
 
 export default function App() {
+  const [authView, setAuthView] = useState<'landing' | 'auth' | 'app'>('landing');
+  const [firebaseUserUid, setFirebaseUserUid] = useState<string | null>(null);
+
   const [user, setUser] = useState<UserProfile>(DEFAULT_USER);
   const [projects, setProjects] = useState<AcademicProject[]>(INITIAL_PROJECTS);
   const [activeProject, setActiveProject] = useState<AcademicProject | null>(INITIAL_PROJECTS[0]);
@@ -67,6 +77,82 @@ export default function App() {
   // On-Boarded Welcome Profile Setup
   const [isOnboarded, setIsOnboarded] = useState(true);
 
+  // Monitor authorization states with persistence
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+      if (fbUser) {
+        setFirebaseUserUid(fbUser.uid);
+        try {
+          const userDocRef = doc(db, 'users', fbUser.uid);
+          const userSnap = await getDoc(userDocRef);
+          let userProfile = DEFAULT_USER;
+          
+          if (userSnap.exists()) {
+            userProfile = userSnap.data() as UserProfile;
+            setUser(userProfile);
+          } else {
+            // Write first-time user record
+            userProfile = {
+              email: fbUser.email || 'scholar@prorite.edu',
+              fullName: fbUser.displayName || 'Academic Scholar',
+              academicLevel: 'Undergraduate',
+              institution: 'Affiliated University',
+              department: 'Computer Science',
+              researchInterests: ['Computer Science', 'Research methodology'],
+              plan: 'Free',
+              walletBalance: 0
+            };
+            await setDoc(userDocRef, userProfile);
+            setUser(userProfile);
+          }
+
+          // Fetch nested academic projects
+          const projectsRef = collection(db, 'users', fbUser.uid, 'projects');
+          const querySnap = await getDocs(projectsRef);
+          const fetchedProjects: AcademicProject[] = [];
+          
+          querySnap.forEach((docSnap) => {
+            fetchedProjects.push(docSnap.data() as AcademicProject);
+          });
+
+          if (fetchedProjects.length > 0) {
+            setProjects(fetchedProjects);
+            setActiveProject(fetchedProjects[0]);
+          } else {
+            // Seed initial sample projects
+            const seeded = INITIAL_PROJECTS.map(p => ({
+              ...p,
+              userId: fbUser.uid
+            }));
+            for (const proj of seeded) {
+              await setDoc(doc(db, 'users', fbUser.uid, 'projects', proj.id), proj);
+            }
+            setProjects(seeded);
+            setActiveProject(seeded[0]);
+          }
+          setAuthView('app');
+        } catch (err) {
+          console.error("Failed to load user session data:", err);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Sign out helper
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error("Sign out fail:", err);
+    }
+    setUser(DEFAULT_USER);
+    setProjects(INITIAL_PROJECTS);
+    setActiveProject(INITIAL_PROJECTS[0]);
+    setAuthView('landing');
+  };
+
   // Selector callback
   const handleSelectProject = (id: string) => {
     if (id === 'new') {
@@ -79,16 +165,32 @@ export default function App() {
     }
   };
 
-  // Adding a newly developed subject workspace project
-  const handleProjectCreated = (newProj: AcademicProject) => {
-    setProjects(prev => [newProj, ...prev]);
-    setActiveProject(newProj);
+  // Adding a newly developed subject workspace project with database persistence
+  const handleProjectCreated = async (newProj: AcademicProject) => {
+    const updatedProj = { ...newProj, userId: firebaseUserUid || 'guest-id' };
+    setProjects(prev => [updatedProj, ...prev]);
+    setActiveProject(updatedProj);
     setActiveModule('builder'); // Transition to editor view directly
+    
+    if (firebaseUserUid) {
+      try {
+        await setDoc(doc(db, 'users', firebaseUserUid, 'projects', newProj.id), updatedProj);
+      } catch (err) {
+        console.error("Firestore save error:", err);
+      }
+    }
   };
 
-  // Upgraded user profile callback
-  const handleUpdateUser = (updatedUser: UserProfile) => {
+  // Upgraded user profile callback with database persistence
+  const handleUpdateUser = async (updatedUser: UserProfile) => {
     setUser(updatedUser);
+    if (firebaseUserUid) {
+      try {
+        await setDoc(doc(db, 'users', firebaseUserUid), updatedUser);
+      } catch (err) {
+        console.error("Firestore profile sync error:", err);
+      }
+    }
   };
 
   // Adding a financial transaction record
@@ -97,10 +199,19 @@ export default function App() {
     console.log('Transaction logged:', newTx);
   };
 
-  // Upgrading project workspace schema
-  const handleUpdateProject = (updatedProj: AcademicProject) => {
-    setProjects(prev => prev.map(p => p.id === updatedProj.id ? updatedProj : p));
-    setActiveProject(updatedProj);
+  // Upgrading project workspace schema with database persistence
+  const handleUpdateProject = async (updatedProj: AcademicProject) => {
+    const boundProj = { ...updatedProj, userId: firebaseUserUid || 'guest-id' };
+    setProjects(prev => prev.map(p => p.id === boundProj.id ? boundProj : p));
+    setActiveProject(boundProj);
+    
+    if (firebaseUserUid) {
+      try {
+        await setDoc(doc(db, 'users', firebaseUserUid, 'projects', boundProj.id), boundProj);
+      } catch (err) {
+        console.error("Firestore update error:", err);
+      }
+    }
   };
 
   // Process Copilot query (Module 16)
@@ -166,6 +277,28 @@ export default function App() {
     setActiveModule('builder');
   };
 
+  if (authView === 'landing') {
+    return (
+      <HomepageLanding 
+        onGetStarted={() => setAuthView('auth')}
+        onLoginClick={() => setAuthView('auth')}
+        onRegisterClick={() => setAuthView('auth')}
+      />
+    );
+  }
+
+  if (authView === 'auth') {
+    return (
+      <AuthScreen 
+        onAuthSuccess={(profile) => {
+          setUser(profile);
+          setAuthView('app');
+        }}
+        onBackToLanding={() => setAuthView('landing')}
+      />
+    );
+  }
+
   return (
     <div id="prorite-root-canvas" className="min-h-screen bg-slate-100 flex flex-col font-sans select-none antialiased text-slate-900">
       
@@ -178,6 +311,7 @@ export default function App() {
         onOpenUpgrade={() => setActiveModule('billing')}
         onOpenWallet={() => setActiveModule('billing')}
         activeModule={activeModule}
+        onLogout={handleLogout}
       />
 
       <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row gap-6">

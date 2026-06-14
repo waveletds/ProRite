@@ -1,0 +1,58 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net (Deafult Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Common helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['id', 'email', 'fullName'])
+        && data.id == request.auth.uid
+        && data.email is string
+        && data.fullName is string
+        && data.fullName.size() <= 100
+        && (!data.keys().contains('walletBalance') || data.walletBalance is number)
+        && (!data.keys().contains('plan') || data.plan is string);
+    }
+
+    function isValidProject(data) {
+      return data.keys().hasAll(['id', 'userId', 'title'])
+        && data.userId == request.auth.uid
+        && data.title is string
+        && data.title.size() <= 200
+        && (!data.keys().contains('academicLevel') || data.academicLevel is string)
+        && (!data.keys().contains('department') || data.department is string);
+    }
+
+    // Users Collection rules
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data);
+      allow delete: if false; // Users cannot be deleted from the client SDK directly
+
+      // Nested Projects Collection Rules
+      match /projects/{projectId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(projectId) && isValidProject(request.resource.data);
+        allow update: if isOwner(userId) && isValidId(projectId) && isValidProject(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

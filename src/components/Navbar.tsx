@@ -6,7 +6,8 @@ import {
   Sparkles, 
   User, 
   ChevronDown, 
-  Building 
+  Building,
+  LogOut
 } from 'lucide-react';
 import { UserProfile, AcademicProject } from '../types';
 
@@ -18,6 +19,7 @@ interface NavbarProps {
   onOpenUpgrade: () => void;
   onOpenWallet: () => void;
   activeModule: string;
+  onLogout?: () => void;
 }
 
 export default function Navbar({
@@ -27,7 +29,8 @@ export default function Navbar({
   onSelectProject,
   onOpenUpgrade,
   onOpenWallet,
-  activeModule
+  activeModule,
+  onLogout
 }: NavbarProps) {
   return (
     <header id="prorite-navbar" className="bg-white border-b border-slate-200 sticky top-0 z-30">
@@ -100,7 +103,7 @@ export default function Navbar({
 
             {/* User Profile Overview */}
             <div className="flex items-center space-x-2 border-l border-slate-200 pl-3">
-              <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-705 font-bold text-xs ring-2 ring-emerald-50">
+              <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-750 font-bold text-xs ring-2 ring-emerald-50">
                 {user.fullName.split(' ').map(n => n[0]).join('')}
               </div>
               <div className="hidden lg:block text-left">
@@ -111,6 +114,18 @@ export default function Navbar({
                 </span>
               </div>
             </div>
+
+            {/* Logout Trigger button */}
+            {onLogout && (
+              <button
+                id="navbar-logout-btn"
+                onClick={onLogout}
+                className="p-1.5 text-slate-400 hover:text-emerald-800 hover:bg-slate-50 rounded-lg transition-all cursor-pointer"
+                title="Log Out scholarly session"
+              >
+                <LogOut className="h-4.5 w-4.5" />
+              </button>
+            )}
 
           </div>
 
