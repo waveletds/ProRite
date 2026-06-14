@@ -185,6 +185,24 @@ export default function App() {
         {/* Left Nav menu panel: 20 PRD Modules routes mappings */}
         <aside id="prorite-left-sidebar" className="lg:w-64 shrink-0 space-y-4">
           
+          {/* Mobile active workpace selector */}
+          <div className="block md:hidden bg-white border border-slate-200 rounded-2xl p-4.5 shadow-xs space-y-2">
+            <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider block">Active Thesis Workspace</span>
+            <select
+              id="mobile-workspace-project-selector"
+              value={activeProject?.id || ''}
+              onChange={(e) => handleSelectProject(e.target.value)}
+              className="block w-full px-3 py-2 text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+            >
+              {projects.map((proj) => (
+                <option key={proj.id} value={proj.id}>
+                  {proj.title.length > 45 ? `${proj.title.substring(0, 45)}...` : proj.title}
+                </option>
+              ))}
+              <option value="new">+ Start A New Project</option>
+            </select>
+          </div>
+
           {/* Quick Info card */}
           <div className="bg-gradient-to-br from-emerald-850 to-slate-950 text-white rounded-2xl p-4.5 shadow-md shadow-emerald-100/10 space-y-3 border border-emerald-950/20">
             <div className="flex items-center space-x-2">
@@ -198,39 +216,41 @@ export default function App() {
           </div>
 
           <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-xs space-y-1">
-            <span className="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-widest pl-3 block pt-1 pb-2">Academic Modules</span>
+            <span className="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-widest pl-3 block pt-1 pb-1">Academic Modules</span>
             
-            {[
-              { id: 'assistant', label: 'Topic & Foundations', icon: Compass, badge: 'M2/7' },
-              { id: 'builder', label: 'Ch 1-5 Thesis Builder', icon: FileText, badge: 'M3/4' },
-              { id: 'literature', label: 'Literature Structurer', icon: BookOpen, badge: 'M5' },
-              { id: 'rewriter', label: 'Academic Tone Rewriter', icon: Sparkles, badge: 'M9' },
-              { id: 'originality', label: 'Originality Assessor', icon: ShieldCheck, badge: 'M10' },
-              { id: 'collaborate', label: 'Supervisor Portal', icon: Users, badge: 'M17' },
-              { id: 'billing', label: 'Wallet & Pricing Store', icon: Award, badge: 'M14/15' },
-              { id: 'admin', label: 'System Analytics', icon: BarChart3, badge: 'M19/20' }
-            ].map((mod) => {
-              const Icon = mod.icon;
-              const active = activeModule === mod.id;
-              return (
-                <button
-                  key={mod.id}
-                  id={`module-nav-link-${mod.id}`}
-                  onClick={() => setActiveModule(mod.id as any)}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all cursor-pointer text-left ${
-                    active 
-                      ? 'bg-emerald-50 text-emerald-900 font-extrabold shadow-inner border-l-4 border-emerald-700 pl-2' 
-                      : 'text-slate-600 hover:bg-slate-50 border-l-4 border-transparent'
-                  }`}
-                >
-                  <div className="flex items-center space-x-2.5">
-                    <Icon className={`h-4.5 w-4.5 shrink-0 ${active ? 'text-emerald-700' : 'text-slate-400'}`} />
-                    <span className="text-xs font-bold leading-none">{mod.label}</span>
-                  </div>
-                  <span className="text-[8px] font-bold py-0.5 px-1.5 rounded-full bg-slate-150 text-slate-500 font-mono scale-90">{mod.badge}</span>
-                </button>
-              );
-            })}
+            <div className="flex flex-row overflow-x-auto lg:flex-col gap-1.5 pb-2 lg:pb-0 lg:space-y-1 scrollbar-none snap-x">
+              {[
+                { id: 'assistant', label: 'Topic & Foundations', icon: Compass, badge: 'M2/7' },
+                { id: 'builder', label: 'Ch 1-5 Thesis Builder', icon: FileText, badge: 'M3/4' },
+                { id: 'literature', label: 'Literature Structurer', icon: BookOpen, badge: 'M5' },
+                { id: 'rewriter', label: 'Academic Tone Rewriter', icon: Sparkles, badge: 'M9' },
+                { id: 'originality', label: 'Originality Assessor', icon: ShieldCheck, badge: 'M10' },
+                { id: 'collaborate', label: 'Supervisor Portal', icon: Users, badge: 'M17' },
+                { id: 'billing', label: 'Wallet & Pricing Store', icon: Award, badge: 'M14/15' },
+                { id: 'admin', label: 'System Analytics', icon: BarChart3, badge: 'M19/20' }
+              ].map((mod) => {
+                const Icon = mod.icon;
+                const active = activeModule === mod.id;
+                return (
+                  <button
+                    key={mod.id}
+                    id={`module-nav-link-${mod.id}`}
+                    onClick={() => setActiveModule(mod.id as any)}
+                    className={`flex items-center justify-between px-3 py-2 rounded-xl transition-all cursor-pointer text-left shrink-0 snap-start lg:w-full ${
+                      active 
+                        ? 'bg-emerald-50 text-emerald-900 font-extrabold shadow-inner border-l-2 lg:border-l-4 border-emerald-700 pl-2' 
+                        : 'text-slate-600 hover:bg-slate-50 border-l-2 lg:border-l-4 border-transparent'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2.5">
+                      <Icon className={`h-4.5 w-4.5 shrink-0 ${active ? 'text-emerald-700' : 'text-slate-400'}`} />
+                      <span className="text-xs font-bold leading-none">{mod.label}</span>
+                    </div>
+                    <span className="text-[8px] font-bold py-0.5 px-1.5 rounded-full bg-slate-150 text-slate-500 font-mono scale-90 ml-2 lg:ml-0">{mod.badge}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Interactive Toggle Trigger for floating AI Copilot (Module 16) */}

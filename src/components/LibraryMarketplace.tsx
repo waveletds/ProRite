@@ -143,19 +143,22 @@ export default function LibraryMarketplace({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         {/* Wallet Balance ledger card */}
-        <div className="bg-gradient-to-br from-emerald-850 to-slate-950 text-white rounded-2xl p-6 shadow-md flex flex-col justify-between border border-emerald-900/35">
+        <div className="bg-gradient-to-br from-emerald-850 to-slate-950 text-white rounded-2xl p-6 shadow-md flex flex-col justify-between border border-emerald-905/35">
           <div className="space-y-1">
-            <span className="text-[10px] text-emerald-300 font-extrabold uppercase tracking-widest block">ProRite Academic Wallet</span>
-            <p className="text-3xl font-black font-mono tracking-tight mt-1.5">₦{user.walletBalance.toLocaleString()}</p>
+            <span className="text-[10px] text-emerald-300 font-extrabold uppercase tracking-widest block font-mono">ProRite Academic Wallet</span>
+            <div className="flex items-baseline space-x-1 mt-1.5">
+              <span className="text-xl font-extrabold text-emerald-400">₦</span>
+              <span className="text-3xl font-black font-mono tracking-tight text-white">{user.walletBalance.toLocaleString()}</span>
+            </div>
           </div>
           
-          <div className="pt-6 border-t border-emerald-900/50 mt-4 flex items-center justify-between">
+          <div className="pt-6 border-t border-emerald-900/40 mt-4 flex items-center justify-between">
             <div>
-              <span className="text-[9px] text-emerald-400 block uppercase font-bold">Active Tier</span>
+              <span className="text-[9px] text-emerald-400 block uppercase font-bold text-[9.5px]">Active Tier</span>
               <p className="font-black text-xs">{user.plan} Account</p>
             </div>
             <div className="bg-[#0c2417] text-emerald-300 p-2.5 rounded-xl border border-emerald-900/60">
-              <Wallet className="h-5 w-5 text-emerald-404" />
+              <Wallet className="h-5 w-5 text-emerald-400" />
             </div>
           </div>
         </div>
@@ -218,14 +221,14 @@ export default function LibraryMarketplace({
 
       </div>
 
-      {/* Subscription Pricing Models section */}
+          {/* Subscription Pricing Models section */}
       <div className="space-y-4">
         <h3 className="font-black text-slate-900 text-sm flex items-center space-x-1.5">
           <Award className="h-4.5 w-4.5 text-emerald-700" />
           <span>Membership & Premium Plans</span>
         </h3>
         
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl">
           {[
             { 
               name: 'Free Plan', 
@@ -260,7 +263,7 @@ export default function LibraryMarketplace({
             return (
               <div 
                 key={plan.name} 
-                className={`bg-white border rounded-2xl p-5 shadow-xs flex flex-col justify-between transition-all ${
+                className={`bg-white border rounded-2xl p-6 shadow-xs flex flex-col justify-between transition-all ${
                   isCurrent 
                     ? 'border-emerald-600 ring-2 ring-emerald-50 bg-emerald-50/10' 
                     : 'border-slate-200/90'
@@ -275,11 +278,14 @@ export default function LibraryMarketplace({
                       </span>
                     )}
                   </div>
-                  <div>
-                    <p className="text-xl font-black font-mono tracking-tight text-slate-950">
-                      ₦{plan.price.toLocaleString()}
-                    </p>
-                    <span className="text-[9px] text-slate-400 block -mt-0.5 font-bold">One-time / month</span>
+                  <div className="py-2">
+                    <div className="flex items-baseline space-x-1">
+                      <span className="text-xl font-extrabold text-emerald-800 font-mono">₦</span>
+                      <p className="text-3xl font-black font-mono tracking-tight text-slate-950">
+                        {plan.price.toLocaleString()}
+                      </p>
+                    </div>
+                    <span className="text-[9px] text-slate-400 block mt-0.5 font-bold">One-time / month</span>
                   </div>
                   <p className="text-[11px] text-slate-550 leading-normal font-semibold">{plan.desc}</p>
                   
@@ -297,10 +303,10 @@ export default function LibraryMarketplace({
                   id={`upgrade-plan-btn-${plan.name.split(' ')[0]}`}
                   onClick={plan.action}
                   disabled={isCurrent}
-                  className={`w-full text-xs font-black py-2 rounded-xl mt-5 transition-all cursor-pointer ${
+                  className={`w-full text-xs font-black py-2.5 rounded-xl mt-5 transition-all cursor-pointer ${
                     isCurrent 
                       ? 'bg-emerald-50 text-emerald-800 cursor-not-allowed border border-emerald-200' 
-                      : 'bg-slate-950 hover:bg-emerald-900 text-white shadow-xs'
+                      : 'bg-slate-950 hover:bg-emerald-950/90 text-white shadow-xs'
                   }`}
                 >
                   {isCurrent ? 'Active Plan' : `Get ${plan.name.split(' ')[0]}`}
@@ -335,7 +341,10 @@ export default function LibraryMarketplace({
               </div>
 
               <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                <span className="font-mono font-black text-slate-900 text-xs">₦{tpl.price.toLocaleString()}</span>
+                <div className="flex items-baseline space-x-0.5">
+                  <span className="text-[10px] font-bold text-emerald-800 font-mono">₦</span>
+                  <span className="font-mono font-extrabold text-slate-950 text-xs tracking-tight">{tpl.price.toLocaleString()}</span>
+                </div>
                 <button
                   id={`purchase-tpl-btn-${tpl.id}`}
                   onClick={() => handleBuyTemplate(tpl)}
