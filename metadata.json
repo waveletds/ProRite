@@ -1,0 +1,6 @@
+{
+  "name": "ProRite AI",
+  "description": "AI-Powered Research, Project Writing & Academic Assistance Platform. Generate literature reviews, proposals, thesis chapters, automatic APA/MLA citations, detect similarity, format front matter, and download print-ready academic documents.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
